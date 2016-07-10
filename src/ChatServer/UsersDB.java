@@ -46,7 +46,7 @@ public class UsersDB {
 	public synchronized String[] getAuthorizedUserArray() {
 		ArrayList<String> users = new ArrayList<>();
 		for (Account account : map.values()) {
-			if (account.getStatus()!= Status.Offline||account.getStatus()!= Status.Invisible) users.add(account.getLogin());
+			if (account.getStatus()!= Status.Offline&&account.getStatus()!= Status.Invisible) users.add(account.getLogin());
 		}
 		return users.toArray(new String[users.size()]);
 	}

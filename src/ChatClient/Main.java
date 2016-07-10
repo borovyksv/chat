@@ -38,7 +38,9 @@ class GetThread extends Thread {
                             if (m.getTo() == null
                                     || m.getTo().equals(account.getLogin())
                                     || m.getFrom().equals(account.getLogin())) {
-                                System.out.println(m);
+                                if ((account.getRoom()==null&&m.getRoom()==null)||m.getRoom()==null||m.getRoom().equals(account.getRoom())) {
+                                    System.out.println(m);
+                                }
                             }
                             n++;
                         }
@@ -75,6 +77,38 @@ class GetUsersThread extends Thread {
     }
 }
 
+class RoomsThread extends Thread {
+    private String room;
+
+    public RoomsThread(String room) {
+        this.room = room;
+        setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+        try (InputStream is = (new URL("http://localhost:8080/rooms?room=" + room).openConnection().getInputStream())) {
+            String[] rooms = (String[]) JsonParser.parseFromJson(is, String[].class);
+            if (rooms == null) {
+                System.out.println("Нет комнат");
+            } else {
+                if (room.equals("null")) {
+                    System.out.println("Доступные комнаты: ");
+                    System.out.println();
+                    for (String room : rooms) {
+                        System.out.println(room);
+                    }
+                } else {
+                    System.out.println("Добро пожаловать в комнату: " + room);
+                }
+            }
+            System.out.println();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
 
 public class Main {
     public static void main(String[] args) {
@@ -93,8 +127,10 @@ public class Main {
 
             while (true) {
                 String text = scanner.nextLine();
-                if (text.isEmpty())
+                if (text.isEmpty()){
+                    account.setStatus(Status.Offline);
                     break;
+                }
 
                 Message m = new Message();
                 m.setText(text);
@@ -103,11 +139,22 @@ public class Main {
                 // сообщение идет лично пользователю "userName";
                 if (text.startsWith("!to ")) m.setTo(text.split(" ")[1]);
                 if (text.startsWith("!users")) new GetUsersThread().start();
+                if (text.startsWith("!room !")) {
+                    String room = text.split(" ")[1];
+                    room = room.substring(1, room.length());
+                    if (room.equals("main")) {
+                        room = null;
+                    } else {
+                        new RoomsThread(room).start();
+                    }
+                    account.setRoom(room);
+                }
+                if (text.startsWith("!rooms")) new RoomsThread("null").start();
                 if (text.startsWith("!status")) {
-                    String status="null";
+                    String status = "null";
                     for (Status st : Status.values()) {
                         if (text.startsWith("!status !" + st.toString())) {
-                            status=st.toString();
+                            status = st.toString();
                         }
                     }
                     new StatusThread(login, status).start();
@@ -117,6 +164,8 @@ public class Main {
                     System.out.println();
                     System.out.println("!to <username> <message> - отправить приватное сообщение c текстом message пользователю username");
                     System.out.println("!users - список пользователей");
+                    System.out.println("!room !<roomname> - перейти в комнату roomname");
+                    System.out.println("!rooms - список комнат");
                     System.out.println("!status - Ваш текущий статус");
                     System.out.println("!status !Offline - сменить статус на офлайн или любой из доступных: Online, Away, DoNotDisturb, Invisible, Offline");
                     System.out.println();
@@ -126,6 +175,7 @@ public class Main {
 
 
                 try {
+                    if (account.getRoom() != null) m.setRoom(account.getRoom());
                     int res = m.send("http://localhost:8080/add");
                     if (res != 200) {
                         System.out.println("HTTP error: " + res);

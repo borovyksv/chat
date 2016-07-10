@@ -17,7 +17,18 @@ public class Message implements Serializable {
 	private String from;
 	private String to;
 	private String text;
-	
+
+	public String getRoom() {
+		return room;
+	}
+
+	public void setRoom(String room) {
+		this.room = room;
+	}
+
+	private String room;
+
+
 	public String toJSON() {
 		Gson gson = new GsonBuilder().create();
 		return gson.toJson(this);

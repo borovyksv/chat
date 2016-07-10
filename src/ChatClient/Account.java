@@ -10,6 +10,16 @@ public class Account implements Serializable {
     private String pass;
     private Status status;
 
+    public String getRoom() {
+        return room;
+    }
+
+    public void setRoom(String room) {
+        this.room = room;
+    }
+
+    private String room;
+
     public Account(String login, String pass, Status status) {
         this.login = login;
         this.pass = pass;

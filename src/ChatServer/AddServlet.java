@@ -11,6 +11,7 @@ import java.io.InputStream;
 public class AddServlet extends HttpServlet {
 
 	private MessageList msgList = MessageList.getInstance();
+	private RoomList roomList = RoomList.getInstance();
 
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -19,8 +20,10 @@ public class AddServlet extends HttpServlet {
 		is.read(buf);
 
 		Message msg = Message.fromJSON(new String(buf));
-		if (msg != null)
+		if (msg != null){
 			msgList.add(msg);
+			if (msg.getRoom()!=null)roomList.add(msg.getRoom());
+		}
 		else
 			resp.setStatus(400); // Bad request
 	}
