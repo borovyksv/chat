@@ -103,6 +103,27 @@ public class Main {
                 // сообщение идет лично пользователю "userName";
                 if (text.startsWith("!to ")) m.setTo(text.split(" ")[1]);
                 if (text.startsWith("!users")) new GetUsersThread().start();
+                if (text.startsWith("!status")) {
+                    String status="null";
+                    for (Status st : Status.values()) {
+                        if (text.startsWith("!status !" + st.toString())) {
+                            status=st.toString();
+                        }
+                    }
+                    new StatusThread(login, status).start();
+                }
+                if (text.startsWith("!help")) {
+                    System.out.println("Доступные команды: ");
+                    System.out.println();
+                    System.out.println("!to <username> <message> - отправить приватное сообщение c текстом message пользователю username");
+                    System.out.println("!users - список пользователей");
+                    System.out.println("!status - Ваш текущий статус");
+                    System.out.println("!status !Offline - сменить статус на офлайн или любой из доступных: Online, Away, DoNotDisturb, Invisible, Offline");
+                    System.out.println();
+                    System.out.println("Перед каждой из команд не забываем ставить восклицательный знак (!)");
+                    System.out.println();
+                }
+
 
                 try {
                     int res = m.send("http://localhost:8080/add");
@@ -148,4 +169,28 @@ public class Main {
         return null;
     }
 
+
 }
+
+class StatusThread extends Thread {
+    private String login;
+    private String st;
+
+    StatusThread(String login, String st) {
+        this.login = login;
+        this.st = st;
+        setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+        try (InputStream is = (new URL("http://localhost:8080/status?login=" + login + "&status=" + st).openConnection().getInputStream())) {
+            Status status = (Status) JsonParser.parseFromJson(is, Status.class);
+            System.out.println(login + ", Ваш статус: " + status);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+

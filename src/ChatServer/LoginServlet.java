@@ -1,6 +1,7 @@
 package ChatServer;
 
 import ChatClient.Account;
+import ChatClient.Status;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -22,7 +23,8 @@ public class LoginServlet extends HttpServlet {
         Account account = null;
         //если login есть в ДБ, возвращаем аккаунт, иначе null
         if (users.contains(login)) {
-            account = new Account(login, users.getPass(login));
+            account = users.getUser(login);
+            account.setStatus(Status.Online);
 
         }
 

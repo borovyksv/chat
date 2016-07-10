@@ -10,10 +10,16 @@ public class Account implements Serializable {
     private String pass;
     private Status status;
 
+    public Account(String login, String pass, Status status) {
+        this.login = login;
+        this.pass = pass;
+        this.status = status;
+    }
+
     public Account(String login, String pass) {
         this.login = login;
         this.pass = pass;
-        this.status = Status.Online;
+        this.status = Status.Offline;
 
     }
 
